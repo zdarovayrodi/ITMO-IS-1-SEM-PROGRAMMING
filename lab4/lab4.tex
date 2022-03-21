@@ -1,0 +1,229 @@
+\documentclass[a4paper,14pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english, russian]{babel}
+\usepackage{amsmath}
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=2cm}% правое поле
+\geometry{top=2cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb,amsfonts,amsmath,cite,enumerate,float,indentfirst}
+
+\usepackage[dvips]{graphicx}
+\usepackage{multirow}
+\graphicspath{{images/}}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{10} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{10}  % for normal
+
+% Custom colors
+\usepackage{color}
+
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deeporange}{rgb}{1,0.5,0.5}
+\definecolor{deepred}{rgb}{0.8,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{grey1}{rgb}{0.5,0.5,0.5}
+\usepackage{listings}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+        language=Python,
+        basicstyle=\small\ttm,
+        otherkeywords={self},             % Add keywords here
+        keywordstyle=\small\ttb\color{deeporange},
+        emph={},          % Custom highlighting
+        emphstyle=\small\color{deepred},    % Custom highlighting style
+        stringstyle=\small\color{deepgreen},
+        commentstyle=\small\color{grey1}\ttm,
+        % frame=tb,                         % Any extra options here
+        showstringspaces=false,           %
+        breaklines=true,
+        tabsize=2
+}}
+% Python environment
+\lstnewenvironment{python}[1][] {
+    \pythonstyle
+    \lstset{#1}
+}{}
+% use: \begin{python}...\end{python}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+% use: \pythoninline{...}
+
+\author{Шайдулин Михаил}
+\date{M3106}
+\title{\textbf{Лабораторная работа №1}}
+
+\begin{document}
+
+\begin{titlepage}
+\newpage
+
+\begin{center}
+Министерство науки и высшего образования Российской Федерации\\
+% \vspace{3em}
+Федеральное государственное автономное образовательное учреждение высшего образования\\
+«Национальный исследовательский университет ИТМО»\\
+Факультет информационных технологий и программирования\\
+\end{center}
+
+\vspace{\fill}
+% \vspace{28em}
+
+\begin{center}
+Программирование\\
+\textbf{Лабораторная работа №4}\\
+\end{center}
+
+\vspace{\fill}
+% \vspace{20em}
+
+\newbox{\lbox}
+\savebox{\lbox}{\hbox{Шайдулин Михаил Андреевич}}
+\newlength{\maxl}
+\setlength{\maxl}{\wd\lbox}
+\hfill\parbox{14cm}{
+\hspace*{5cm}Выполнил студент:\hfill\hbox to\maxl{Шайдулин Михаил Андреевич \hfill}\\
+\hspace*{5cm}Группа:\hfill\hbox to\maxl{M3106}\\
+}
+
+
+\vspace{8em}
+% \vspace{\fill}
+
+\begin{center}
+Санкт-Петербург \\2021
+\end{center}
+
+\end{titlepage}
+
+
+% 1
+\section{metaeditor.c}
+\begin{python}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <locale.h>
+
+
+
+int main(int argc, char **argv)
+{
+    char* songname;
+    char* prop_name;
+    char* prop_value;
+    uint8_t show;
+    int get_flag = 0;
+    int show_flag = 0;
+
+    // for loop to initialize the parameters from terminal
+    for (int argv_index = 1; argv_index < argc; argv_index++)
+    {
+        // file path parameter
+        if (argv[argv_index][2] == 'f')
+        {
+            // path to a song
+            songname = argv[argv_index] + 11;
+            // code here
+        }
+        // show parameter
+        else if (argv[argv_index][2] == 's')
+        {
+            show_flag = 1;
+        }
+        // get parameter
+        else if (argv[argv_index][2] == 'g')
+        {
+            prop_name = argv[argv_index] + 6;
+            get_flag = 1;
+        }
+        // set parameter
+        else if (argv[argv_index][2] == 's')
+        {
+            prop_name = argv[argv_index] + 6;
+            // code here
+        }
+        else if (argv[argv_index][2] == 'v')
+        {
+            prop_value = argv[argv_index] + 8;
+            // code here
+        }
+    }
+
+    // opening file.mp3
+    FILE * music_file = fopen(songname, "rb+");
+    if (music_file == NULL)
+    {
+        printf ("Error opening %s\n", songname);
+        exit(1);
+    }
+    // initializing file size
+    fseek (music_file , 0 , SEEK_END);  // setting position to the end of the file
+    long lSize = ftell (music_file);    // getting size in bytes
+    fseek (music_file , 0 , SEEK_SET); // setting pointer to the start of the file
+    printf("%ld bytes\n", lSize); //
+
+    char signature[4];
+    char name_of_frame[5];
+    char artist[30];
+    char album[30];
+    char year[4];
+    char description[30];
+    unsigned short ganre;
+
+    fread(signature, 1, sizeof(signature)-1, music_file); // reading signature
+    signature[3] = '\0'; // closing line
+
+    fseek(music_file, 3, SEEK_CUR);
+    int size;
+    char bsize[4];
+    fread(bsize, sizeof(bsize), 1, music_file);
+    size = ((bsize[0] << 21) | (bsize[1] << 14) | (bsize[2] << 7) | (bsize[3]));
+    printf("signature: %s\n\n",signature);
+
+    while (ftell(music_file) < size) {
+        fread(name_of_frame, 1, sizeof(name_of_frame)-1, music_file); // reading in buffer
+        name_of_frame[4] = '\0'; // closing line
+
+        int size_of_frame;
+        char fsize[4];
+        fread(fsize, 1, sizeof(fsize), music_file); // reading
+        size_of_frame = ((fsize[0] << 24) | (fsize[1] << 16) | (fsize[2] << 8) | (fsize[3]));
+        fseek(music_file, 2, SEEK_CUR);
+        int unicode = 0;
+        unicode = fgetc(music_file);
+        char * frame_content = (char *)malloc(size_of_frame);
+        fread(frame_content, sizeof(char), size_of_frame-1, music_file);
+        frame_content[size_of_frame-1] = '\0'; // closing line
+
+        if (name_of_frame && !name_of_frame[0])
+        {
+            break;
+        }
+        if (show_flag == 1)
+        {
+            //printing content
+            printf("frame: %s, %d bytes\n", name_of_frame, size);
+            printf("content: %s\n\n", frame_content);
+        } else if (get_flag == 1 && strcmp(name_of_frame, prop_name) == 0)
+        {
+            printf("frame: %s, %d bytes\n", name_of_frame, size);
+            printf("content: %s\n\n", frame_content);
+        }
+    }
+
+    // } else {
+        // printf("frame_content: %s\n", frame_content);
+    // }
+    // shutting down
+    fclose (music_file);
+    return 0;
+}
+\end{python}
+
+\end{document}
